@@ -31,8 +31,10 @@ jobs:
         echo "Solution file location:"
         if (Test-Path "MIS-Project-.sln") {
             echo "Solution file found"
+            Get-Content "MIS-Project-.sln"
         } else {
             echo "Solution file not found"
+            exit 1
         }
 
     - name: Restore NuGet packages
@@ -44,20 +46,32 @@ jobs:
     - name: Build solution
       run: |
         echo "Starting build process..."
-        msbuild "MIS-Project-.sln" /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:diag /p:DeployOnBuild=true /p:OutDir="$env:GITHUB_WORKSPACE\bin\Release"
+        msbuild "MIS-Project-.sln" `
+          /p:Configuration=Release `
+          /p:Platform="Any CPU" `
+          /p:RestorePackagesConfig=true `
+          /v:detailed `
+          /p:DeployOnBuild=true `
+          /p:OutDir="$env:GITHUB_WORKSPACE\bin\Release" `
+          /flp:logfile=msbuild.log;verbosity=detailed `
+          /flp1:logfile=msbuild_warn.log;warningsonly `
+          /flp2:logfile=msbuild_error.log;errorsonly
         echo "Build process completed."
 
-    - name: Show error log
-      if: failure()
+    - name: Show build logs
+      if: always()
       run: |
-        echo "Checking for error logs..."
-        Get-ChildItem -Path . -Filter *.log -Recurse | ForEach-Object {
-            echo "Log file: $($_.FullName)"
-            Get-Content $_.FullName
+        echo "MSBuild Log:"
+        if (Test-Path "msbuild.log") {
+            Get-Content "msbuild.log"
         }
-        Get-ChildItem -Path . -Filter *.binlog -Recurse | ForEach-Object {
-            echo "Binary log file: $($_.FullName)"
-            msbuild -bl:"$($_.FullName)"
+        echo "MSBuild Warnings:"
+        if (Test-Path "msbuild_warn.log") {
+            Get-Content "msbuild_warn.log"
+        }
+        echo "MSBuild Errors:"
+        if (Test-Path "msbuild_error.log") {
+            Get-Content "msbuild_error.log"
         }
 
     - name: List build output
@@ -72,7 +86,8 @@ jobs:
       with:
         name: build-logs
         path: |
-          **/*.log
+          *.log
           **/*.binlog
           **/obj/**
           **/bin/**
+          MIS-Project-.sln
