@@ -22,22 +22,28 @@ jobs:
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.2.0
       
+    - name: List solution files
+      run: |
+        echo "Listing solution and project files..."
+        dir /s /b *.sln
+        dir /s /b *.csproj
+      
     - name: Restore NuGet packages
       run: |
         echo "Restoring NuGet packages..."
-        nuget restore LoginVendor/LoginVendor.csproj
+        nuget restore LoginVendor/LoginVendor.csproj -Verbosity detailed
         echo "NuGet restore completed."
 
     - name: Build project
       run: |
         echo "Starting build process..."
-        msbuild LoginVendor/LoginVendor.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:detailed
+        msbuild LoginVendor/LoginVendor.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:diag
         echo "Build process completed."
 
     - name: List build output
       run: |
         echo "Checking build output directory..."
-        dir LoginVendor\bin\Release\
+        dir LoginVendor\bin\Release\ /s
       if: always()
 
     - name: Upload build artifacts
