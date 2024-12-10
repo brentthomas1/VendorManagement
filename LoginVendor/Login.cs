@@ -236,5 +236,60 @@ namespace LoginVendor
                 mysqlConnection.Dispose();
             }
         }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+            // Empty handler for label1 click
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+            // Empty handler for panel1 paint
+        }
+
+        private void panel2_Paint(object sender, PaintEventArgs e)
+        {
+            // Empty handler for panel2 paint
+        }
+
+        private void txtUsername_TextChanged_1(object sender, EventArgs e)
+        {
+            // Empty handler for username text changed
+        }
+
+        private void txtPassword_TextChanged(object sender, EventArgs e)
+        {
+            // Empty handler for password text changed
+        }
+
+        private void comboBoxType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Empty handler for combo box selection change
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+            // Empty handler for label4 click
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            // Empty handler for picture box 1 click
+        }
+
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            // Empty handler for picture box 2 click
+        }
+
+        private void pictureBox3_Click(object sender, EventArgs e)
+        {
+            // Empty handler for picture box 3 click
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Empty handler for form load
+        }
     }
 }
