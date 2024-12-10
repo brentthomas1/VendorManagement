@@ -20,6 +20,14 @@ namespace LoginVendor
         {
             try
             {
+                // Clear existing data
+                if (grid.DataSource != null)
+                {
+                    grid.DataSource = null;
+                }
+                grid.Rows.Clear();
+                grid.Columns.Clear();
+
                 using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
@@ -30,7 +38,6 @@ namespace LoginVendor
                         grid.DataSource = dt;
 
                         // Format the grid
-                        grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
                         grid.ScrollBars = ScrollBars.Both;
                         grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
                         grid.RowHeadersWidth = 25;
@@ -159,14 +166,29 @@ namespace LoginVendor
         {
             // Load initial data for all grids
             btnViewUserData_Click(sender, e);
-            btnViewVendorData_Click(sender, e);
-            btnViewVendorDelivery_Click(sender, e);
-
+            
             // Set initial visibility
             gdUserData.Visible = true;
             gdUserData.BringToFront();
             dgVendorDelivery.Visible = false;
             dgNewVendor.Visible = false;
+        }
+
+        // Add a refresh button click handler
+        private void RefreshData()
+        {
+            if (gdUserData.Visible)
+                btnViewUserData_Click(this, EventArgs.Empty);
+            else if (dgNewVendor.Visible)
+                btnViewVendorData_Click(this, EventArgs.Empty);
+            else if (dgVendorDelivery.Visible)
+                btnViewVendorDelivery_Click(this, EventArgs.Empty);
+        }
+
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+            RefreshData(); // Refresh data when form becomes active
         }
 
         // Keep existing UI event handlers
