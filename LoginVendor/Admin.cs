@@ -2,6 +2,7 @@
 using System.Data;
 using MySql.Data.MySqlClient;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace LoginVendor
 {
@@ -14,6 +15,26 @@ namespace LoginVendor
         {
             InitializeComponent();
             mysqlConnection = new MySqlConnection(connectionString);
+
+            // Configure grids
+            ConfigureGrid(gdUserData);
+            ConfigureGrid(dgNewVendor);
+            ConfigureGrid(dgVendorDelivery);
+        }
+
+        private void ConfigureGrid(DataGridView grid)
+        {
+            grid.BackgroundColor = Color.White;
+            grid.BorderStyle = BorderStyle.Fixed3D;
+            grid.AllowUserToAddRows = false;
+            grid.AllowUserToDeleteRows = false;
+            grid.ReadOnly = true;
+            grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            grid.MultiSelect = false;
+            grid.Dock = DockStyle.None;
+            grid.Size = new Size(800, 400);  // Set a reasonable default size
+            grid.Location = new Point(20, 100);  // Position below the buttons
         }
 
         private void LoadDataToGrid(string query, DataGridView grid)
@@ -35,19 +56,11 @@ namespace LoginVendor
                             return;
                         }
 
-                        // Clear existing data
-                        if (grid.DataSource != null)
-                        {
-                            grid.DataSource = null;
-                        }
-                        grid.Rows.Clear();
-                        grid.Columns.Clear();
-
                         grid.DataSource = dt;
 
                         // Format the grid
-                        grid.ScrollBars = ScrollBars.Both;
-                        grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+                        grid.BackgroundColor = Color.White;
+                        grid.BorderStyle = BorderStyle.Fixed3D;
                         grid.RowHeadersWidth = 25;
                         grid.RowTemplate.Height = 35;
                         grid.DefaultCellStyle.Padding = new Padding(5);
@@ -86,10 +99,6 @@ namespace LoginVendor
                             col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                             col.Width = Math.Max(width, col.MinimumWidth);
                         }
-
-                        // Set grid size and position
-                        grid.Dock = DockStyle.Fill;
-                        grid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
                     }
                 }
             }
