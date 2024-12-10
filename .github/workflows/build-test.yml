@@ -27,69 +27,52 @@ jobs:
       run: |
         echo "Working directory:"
         pwd
-        echo "Current directory contents:"
-        dir /s
-        echo "Full directory tree:"
-        tree /f
-      
-    - name: Check solution file
-      run: |
-        echo "Checking for solution file..."
-        if (Test-Path "*.sln") {
-            Get-ChildItem -Filter *.sln
+        dir
+        echo "Solution file location:"
+        if (Test-Path "MIS-Project-.sln") {
+            echo "Solution file found"
         } else {
-            echo "No solution file found!"
-            exit 1
+            echo "Solution file not found"
         }
 
     - name: Restore NuGet packages
       run: |
         echo "Restoring NuGet packages..."
-        $solutionFile = Get-ChildItem -Filter *.sln | Select-Object -First 1
-        nuget restore $solutionFile.FullName -Verbosity detailed
+        nuget restore "MIS-Project-.sln" -Verbosity detailed
         echo "NuGet restore completed."
 
     - name: Build solution
       run: |
         echo "Starting build process..."
-        $solutionFile = Get-ChildItem -Filter *.sln | Select-Object -First 1
-        msbuild $solutionFile.FullName /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:diag /p:DeployOnBuild=true /p:OutDir="$env:GITHUB_WORKSPACE\bin\Release" /bl:msbuild.binlog
+        msbuild "MIS-Project-.sln" /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:diag /p:DeployOnBuild=true /p:OutDir="$env:GITHUB_WORKSPACE\bin\Release"
         echo "Build process completed."
 
     - name: Show error log
       if: failure()
       run: |
         echo "Checking for error logs..."
-        echo "MSBuild Binary Log:"
-        if (Test-Path msbuild.binlog) {
-            msbuild -pp:detailed
-            msbuild -bl:msbuild.binlog
-        }
-        echo "Release Logs:"
         Get-ChildItem -Path . -Filter *.log -Recurse | ForEach-Object {
             echo "Log file: $($_.FullName)"
             Get-Content $_.FullName
         }
+        Get-ChildItem -Path . -Filter *.binlog -Recurse | ForEach-Object {
+            echo "Binary log file: $($_.FullName)"
+            msbuild -bl:"$($_.FullName)"
+        }
 
     - name: List build output
-      run: |
-        echo "Checking build output directory..."
-        Get-ChildItem -Path . -Recurse
       if: always()
+      run: |
+        echo "Checking workspace contents:"
+        Get-ChildItem -Path . -Recurse
 
     - name: Upload build artifacts
+      if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: app-build
+        name: build-logs
         path: |
-          bin/Release/
-          *.log
-          msbuild.binlog
-      if: always()
-
-    - name: Report build status
-      run: |
-        echo "Build Status: ${{ job.status }}"
-        echo "Runner OS: ${{ runner.os }}"
-        echo "Workspace: ${{ github.workspace }}"
-      if: always()
+          **/*.log
+          **/*.binlog
+          **/obj/**
+          **/bin/**
