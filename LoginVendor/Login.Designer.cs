@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Windows.Forms;
+using MySql.Data.MySqlClient;
 
 namespace LoginVendor
 {
@@ -283,6 +284,7 @@ namespace LoginVendor
             this.ResumeLayout(false);
             this.PerformLayout();
 
+            this.mysqlConnection = new MySql.Data.MySqlClient.MySqlConnection(this.connectionString);
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -374,6 +376,8 @@ namespace LoginVendor
         private System.Windows.Forms.Button btnShow;
         private System.Windows.Forms.ComboBox comboBoxType;
         private System.Windows.Forms.Label label4;
+        private MySql.Data.MySqlClient.MySqlConnection mysqlConnection;
+        private string connectionString;
     }
 }
 

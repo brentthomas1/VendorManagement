@@ -79,7 +79,7 @@ namespace LoginVendor
             }
         }
 
-        private void FormClosed(object sender, EventArgs e)
+        private new void FormClosed(object sender, EventArgs e)
         {
             if (mysqlConnection != null)
             {
