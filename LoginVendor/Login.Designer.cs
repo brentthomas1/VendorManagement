@@ -299,25 +299,22 @@ namespace LoginVendor
                 string userSelectedType = comboBoxType.Text; // Get the selected user type from the ComboBox
 
                 // Define your SQL connection (assuming sqlConnection is a valid SqlConnection object)
-                string connectionString = @"Data Source=vendor-mgnt.database.windows.net;Initial Catalog=VendorLogIn;Persist Security Info=True;User ID=Ernesto;Password=Password1!;TrustServerCertificate=True";
+                string connectionString = "server=localhost;user=root;database=vendorDB;port=3306;password=Bshow123!;";
 
-                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
                     try
                     {
-                        // Open the connection
-                        sqlConnection.Open();
-
-                        // Fetch user type from the database for the given username
-                        string userTypeQuery = "SELECT Type FROM dbo.VendorCredentials WHERE Username = @Username";
-                        SqlCommand command = new SqlCommand(userTypeQuery, sqlConnection);
+                        conn.Open();
+                        string userTypeQuery = "SELECT Type FROM vendorcredentials WHERE Username = @Username";
+                        MySqlCommand command = new MySqlCommand(userTypeQuery, conn);
                         command.Parameters.AddWithValue("@Username", txtUsername.Text);
 
-                        string sqlType = (string)command.ExecuteScalar();
+                        object result = command.ExecuteScalar();
+                        string sqlType = result != null ? result.ToString() : string.Empty;
 
                         if (userSelectedType == sqlType)
                         {
-                            // User type is correct
                             if (userSelectedType == "Admin")
                             {
                                 new Admin().Show();
@@ -336,13 +333,7 @@ namespace LoginVendor
                     }
                     catch (Exception ex)
                     {
-                        // Handle any exceptions that may occur
                         MessageBox.Show($"An error occurred: {ex.Message}");
-                    }
-                    finally
-                    {
-                        // Ensure the connection is closed
-                        sqlConnection.Close();
                     }
                 }
             }

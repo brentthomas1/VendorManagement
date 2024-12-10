@@ -1,0 +1,5 @@
+[33ma9f9f1f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix compiler errors: sqlConnection scope and ambiguous constructor
+[33mefb87a4[m Convert to SDK-style project format for better compatibility
+[33mddaf333[m Update workflow with better directory listing and error handling
+[33m9ccfc2c[m Update workflow to use solution file and show detailed errors
+[33m0fedad7[m Add detailed build diagnostics
