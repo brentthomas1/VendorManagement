@@ -72,9 +72,9 @@ namespace LoginVendor
                             col.Width = Math.Max(width, col.MinimumWidth);
                         }
 
-                        // Ensure grid size doesn't exceed form
-                        grid.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+                        // Set grid size and position
                         grid.Dock = DockStyle.Fill;
+                        grid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
                     }
                 }
             }
