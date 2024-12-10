@@ -8,7 +8,7 @@ namespace LoginVendor
     public partial class Admin : Form
     {
         private MySqlConnection mysqlConnection;
-        private string connectionString = "server=localhost;user=root;database=vendorDB;port=3306;password=Bshow123!;";
+        private string connectionString = "Server=localhost;Database=vendordb;Uid=vendorapp;Pwd=Vendor123!;Port=3306;SslMode=None;AllowPublicKeyRetrieval=True;";
 
         public Admin()
         {
@@ -51,8 +51,29 @@ namespace LoginVendor
 
         private void btnViewVendorData_Click(object sender, EventArgs e)
         {
-            string query = "SELECT * FROM vendorinfo";
+            string query = @"SELECT 
+                v.ID,
+                v.POC_Name as 'Contact Name',
+                v.POC_JobTitle as 'Job Title',
+                v.POC_Email as 'Email',
+                v.POC_Phone as 'Phone',
+                v.POC_Company as 'Company',
+                v.POC_ComAddress as 'Address',
+                v.City,
+                COALESCE(v.Products, 'N/A') as 'Products',
+                COALESCE(v.Dairy_products, 'N/A') as 'Dairy Products',
+                COALESCE(v.Delivery, 'N/A') as 'Delivery Status',
+                COALESCE(v.Payment, 'N/A') as 'Payment Status'
+            FROM vendorinfo v
+            ORDER BY v.ID";
             LoadDataToGrid(query, dgNewVendor);
+
+            // Format the grid for better readability
+            dgNewVendor.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+            foreach (DataGridViewColumn col in dgNewVendor.Columns)
+            {
+                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            }
 
             // Visibility settings
             dgNewVendor.Visible = true;
@@ -63,8 +84,26 @@ namespace LoginVendor
 
         private void btnViewVendorDelivery_Click(object sender, EventArgs e)
         {
-            string query = "SELECT * FROM vendorinfo WHERE Delivery IS NOT NULL";
+            string query = @"SELECT 
+                v.ID,
+                v.POC_Name as 'Contact Name',
+                v.POC_Company as 'Company',
+                v.City,
+                COALESCE(v.Products, 'N/A') as 'Products',
+                COALESCE(v.Dairy_products, 'N/A') as 'Dairy Products',
+                v.Delivery as 'Delivery Status',
+                v.Payment as 'Payment Status'
+            FROM vendorinfo v
+            WHERE v.Delivery IS NOT NULL
+            ORDER BY v.ID";
             LoadDataToGrid(query, dgVendorDelivery);
+
+            // Format the grid for better readability
+            dgVendorDelivery.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+            foreach (DataGridViewColumn col in dgVendorDelivery.Columns)
+            {
+                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            }
 
             // Visibility settings
             dgVendorDelivery.Visible = true;
