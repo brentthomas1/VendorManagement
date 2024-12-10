@@ -24,37 +24,48 @@ jobs:
       
     - name: List files
       run: |
+        echo "Working directory:"
+        pwd
         echo "Current directory contents:"
-        dir
-        echo "Solution file location:"
-        dir /s /b *.sln
-        echo "Project files:"
-        dir /s /b *.csproj
+        dir /s
+        echo "Full directory tree:"
+        tree /f
       
     - name: Restore NuGet packages
       run: |
         echo "Restoring NuGet packages..."
-        nuget restore MIS-Project-.sln -Verbosity detailed
+        nuget restore "$(pwd)\MIS-Project-.sln" -Verbosity detailed
         echo "NuGet restore completed."
 
     - name: Build solution
       run: |
         echo "Starting build process..."
-        msbuild MIS-Project-.sln /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:diag /p:DeployOnBuild=true /p:OutDir=bin\Release
+        msbuild "$(pwd)\MIS-Project-.sln" /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:diag /p:DeployOnBuild=true /p:OutDir="$(pwd)\bin\Release"
         echo "Build process completed."
 
     - name: Show error log
       if: failure()
       run: |
         echo "Checking for error logs..."
-        type LoginVendor\obj\Release\*.log
-        echo "Checking MSBuild binary log..."
-        type msbuild.binlog
+        if (Test-Path LoginVendor\obj\Release\*.log) {
+            Get-Content LoginVendor\obj\Release\*.log
+        } else {
+            echo "No error log files found"
+        }
+        if (Test-Path msbuild.binlog) {
+            Get-Content msbuild.binlog
+        } else {
+            echo "No MSBuild binary log found"
+        }
 
     - name: List build output
       run: |
         echo "Checking build output directory..."
-        dir LoginVendor\bin\Release\ /s
+        if (Test-Path LoginVendor\bin\Release) {
+            Get-ChildItem LoginVendor\bin\Release -Recurse
+        } else {
+            echo "Build output directory not found"
+        }
       if: always()
 
     - name: Upload build artifacts
