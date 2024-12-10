@@ -32,9 +32,9 @@ namespace LoginVendor
             grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             grid.MultiSelect = false;
-            grid.Dock = DockStyle.None;
             grid.Size = new Size(800, 400);  // Set a reasonable default size
             grid.Location = new Point(20, 100);  // Position below the buttons
+            grid.ScrollBars = ScrollBars.Both;
         }
 
         private void LoadDataToGrid(string query, DataGridView grid)
@@ -181,14 +181,23 @@ namespace LoginVendor
 
         private void Admin_Load(object sender, EventArgs e)
         {
-            // Load initial data for all grids
+            // Load initial data for user grid
             btnViewUserData_Click(sender, e);
-            
-            // Set initial visibility
-            gdUserData.Visible = true;
-            gdUserData.BringToFront();
-            dgVendorDelivery.Visible = false;
-            dgNewVendor.Visible = false;
+
+            // Make sure all buttons are visible and enabled
+            if (btnViewUserData != null) btnViewUserData.Visible = btnViewUserData.Enabled = true;
+            if (btnViewVendorData != null) btnViewVendorData.Visible = btnViewVendorData.Enabled = true;
+            if (btnViewVendorDelivery != null) btnViewVendorDelivery.Visible = btnViewVendorDelivery.Enabled = true;
+            if (btnBackLogIn != null) btnBackLogIn.Visible = btnBackLogIn.Enabled = true;
+            if (btnNewVendorLog != null) btnNewVendorLog.Visible = btnNewVendorLog.Enabled = true;
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            // Ensure proper form size and layout
+            this.Size = new Size(900, 600);
+            this.StartPosition = FormStartPosition.CenterScreen;
         }
 
         // Add a refresh button click handler
