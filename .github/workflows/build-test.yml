@@ -22,23 +22,34 @@ jobs:
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.2.0
       
-    - name: List solution files
+    - name: List files
       run: |
-        echo "Listing solution and project files..."
+        echo "Current directory contents:"
+        dir
+        echo "Solution file location:"
         dir /s /b *.sln
+        echo "Project files:"
         dir /s /b *.csproj
       
     - name: Restore NuGet packages
       run: |
         echo "Restoring NuGet packages..."
-        nuget restore LoginVendor/LoginVendor.csproj -Verbosity detailed
+        nuget restore MIS-Project-.sln -Verbosity detailed
         echo "NuGet restore completed."
 
-    - name: Build project
+    - name: Build solution
       run: |
         echo "Starting build process..."
-        msbuild LoginVendor/LoginVendor.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:diag
+        msbuild MIS-Project-.sln /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:diag /p:DeployOnBuild=true /p:OutDir=bin\Release
         echo "Build process completed."
+
+    - name: Show error log
+      if: failure()
+      run: |
+        echo "Checking for error logs..."
+        type LoginVendor\obj\Release\*.log
+        echo "Checking MSBuild binary log..."
+        type msbuild.binlog
 
     - name: List build output
       run: |
