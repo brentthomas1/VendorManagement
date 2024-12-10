@@ -1,0 +1,35 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.2.0
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '6.0.x'
+        
+    - name: Restore NuGet packages
+      run: nuget restore MIS-Project-.sln
+
+    - name: Build Solution
+      run: msbuild MIS-Project-.sln /p:Configuration=Release
+
+    # Add testing step if you have unit tests
+    # - name: Run Tests
+    #   run: dotnet test --no-build --verbosity normal 
