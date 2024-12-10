@@ -299,9 +299,9 @@ namespace LoginVendor
                 string userSelectedType = comboBoxType.Text; // Get the selected user type from the ComboBox
 
                 // Define your SQL connection (assuming sqlConnection is a valid SqlConnection object)
-                //using (SqlConnection sqlConnection = new SqlConnection("Data Source=DESKTOP-BPLDLKV\\SQLEXPRESS;Initial Catalog=\"MIS Project\";Integrated Security=True;Encrypt=True;TrustServerCertificate=True"))
-                string connectionString = @"Data Source=DESKTOP-BPLDLKV\SQLEXPRESS;Initial Catalog=VendorLogin;Integrated Security=True;Encrypt=True;TrustServerCertificate=True";
+                string connectionString = @"Data Source=vendor-mgnt.database.windows.net;Initial Catalog=VendorLogIn;Persist Security Info=True;User ID=Ernesto;Password=Password1!;TrustServerCertificate=True";
 
+                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
                 {
                     try
                     {

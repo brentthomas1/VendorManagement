@@ -81,7 +81,8 @@ namespace LoginVendor
 
         private void btnNewVendorLog_Click(object sender, EventArgs e)
         {
-            new NewVendorInfo().Show();
+            var newVendorForm = new NewVendorInfo();
+            newVendorForm.Show();
             this.Hide();
         }
 
