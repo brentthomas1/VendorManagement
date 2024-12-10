@@ -33,6 +33,23 @@ namespace LoginVendor
             gdUserData.Size = new Size(700, 500);
             dgNewVendor.Size = new Size(700, 500);
             dgVendorDelivery.Size = new Size(700, 500);
+
+            // Configure buttons
+            if (btnNewVendorLog != null)
+            {
+                btnNewVendorLog.Location = new Point(888, 600);
+                btnNewVendorLog.Size = new Size(280, 58);
+                btnNewVendorLog.Visible = true;
+                btnNewVendorLog.BringToFront();
+                btnNewVendorLog.Text = "New Vendor Log";
+            }
+
+            if (btnBackLogIn != null)
+            {
+                btnBackLogIn.Location = new Point(84, 600);
+                btnBackLogIn.Size = new Size(280, 58);
+                btnBackLogIn.Visible = true;
+            }
         }
 
         private void ConfigureGrid(DataGridView grid)
