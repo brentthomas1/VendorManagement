@@ -1,37 +1,116 @@
 ﻿using System;
-using MySql.Data.MySqlClient;
+using System.Drawing;
 using System.Windows.Forms;
-using System.Configuration;
+using MySql.Data.MySqlClient;
 
 namespace LoginVendor
 {
     public partial class Login : Form
     {
         private MySqlConnection mysqlConnection;
-        private string connectionString = "server=localhost;user=root;database=vendorDB;port=3306;password=Bshow123!;";
+        private string connectionString = "Server=localhost;Database=vendordb;Uid=vendorapp;Pwd=Vendor123!;Port=3306;SslMode=None;AllowPublicKeyRetrieval=True;";
 
         public Login()
         {
             InitializeComponent();
             mysqlConnection = new MySqlConnection(connectionString);
+
+            // Configure form
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.MaximizeBox = false;
+
+            // Style textboxes
+            ConfigureTextBox(txtUsername, "Username");
+            ConfigureTextBox(txtPassword, "Password");
+            txtPassword.PasswordChar = '•';
+
+            // Style buttons
+            ConfigureButton(button1);  // Sign In button
+            ConfigureButton(ExitLabel);  // Exit button
+            ConfigureButton(btnShow);  // Show password button
+            ConfigureButton(btnHide);  // Hide password button
+
+            // Configure labels
+            label1.Font = new Font("Segoe UI", 22F, FontStyle.Bold);
+            label2.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            label3.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            label4.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+
+            // Configure combo box
+            comboBoxType.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxType.Items.Clear();
+            comboBoxType.Items.AddRange(new object[] { "Admin", "Vendor" });
         }
 
-        private bool ValidateUser(string username, string passwords)
+        private void ConfigureTextBox(TextBox textBox, string placeholder)
+        {
+            textBox.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+            textBox.ForeColor = Color.Gray;
+            textBox.Text = placeholder;
+            textBox.BorderStyle = BorderStyle.None;
+            
+            // Add padding
+            Padding padding = new Padding(10, 5, 10, 5);
+            textBox.Margin = padding;
+
+            // Add events for placeholder behavior
+            textBox.GotFocus += (s, e) => {
+                if (textBox.Text == placeholder)
+                {
+                    textBox.Text = "";
+                    textBox.ForeColor = Color.Black;
+                    if (placeholder == "Password")
+                        textBox.PasswordChar = '•';
+                }
+            };
+
+            textBox.LostFocus += (s, e) => {
+                if (string.IsNullOrWhiteSpace(textBox.Text))
+                {
+                    textBox.Text = placeholder;
+                    textBox.ForeColor = Color.Gray;
+                    if (placeholder == "Password")
+                        textBox.PasswordChar = '\0';
+                }
+            };
+        }
+
+        private void ConfigureButton(Button button)
+        {
+            button.FlatStyle = FlatStyle.Flat;
+            button.BackColor = Color.FromArgb(81, 40, 136);  // Purple color
+            button.ForeColor = Color.White;
+            button.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+            button.Cursor = Cursors.Hand;
+            button.FlatAppearance.BorderSize = 0;
+            
+            // Add hover effect
+            button.MouseEnter += (s, e) => {
+                button.BackColor = Color.FromArgb(101, 60, 156);  // Lighter purple on hover
+            };
+            
+            button.MouseLeave += (s, e) => {
+                button.BackColor = Color.FromArgb(81, 40, 136);  // Original purple
+            };
+        }
+
+        private bool ValidateUser(string username, string password)
         {
             try
             {
                 mysqlConnection.Open();
-                string query = "SELECT COUNT(*) AS UserCount FROM VendorCredentials WHERE Username = @username AND Password = @password";
+                string query = "SELECT COUNT(*) FROM vendorcredentials WHERE Username = @username AND Password = @password";
                 MySqlCommand command = new MySqlCommand(query, mysqlConnection);
                 command.Parameters.AddWithValue("@username", username);
-                command.Parameters.AddWithValue("@password", passwords);
+                command.Parameters.AddWithValue("@password", password);
 
-                int userCount = Convert.ToInt32(command.ExecuteScalar());
-                return userCount > 0;
+                int count = Convert.ToInt32(command.ExecuteScalar());
+                return count > 0;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Database error: " + ex.Message);
+                MessageBox.Show("Error: " + ex.Message);
                 return false;
             }
             finally
@@ -41,50 +120,62 @@ namespace LoginVendor
             }
         }
 
-        private void btnSignIn_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
-            if (comboBoxType.SelectedItem == null)
+            string username = txtUsername.Text;
+            string password = txtPassword.Text;
+
+            // Don't try to login with placeholder text
+            if (username == "Username" || password == "Password")
             {
-                MessageBox.Show("Please Select a valid user type.");
-                comboBoxType.Focus();
+                MessageBox.Show("Please enter your username and password.");
                 return;
             }
 
-            if (ValidateUser(txtUsername.Text, txtPassword.Text))
+            if (comboBoxType.SelectedItem == null)
+            {
+                MessageBox.Show("Please select a user type.");
+                return;
+            }
+
+            if (ValidateUser(username, password))
             {
                 try
                 {
                     mysqlConnection.Open();
-                    string userTypeQuery = "SELECT Type FROM VendorCredentials WHERE Username = @Username";
-                    MySqlCommand command = new MySqlCommand(userTypeQuery, mysqlConnection);
-                    command.Parameters.AddWithValue("@Username", txtUsername.Text);
+                    string query = "SELECT Type FROM vendorcredentials WHERE Username = @username AND Password = @password";
+                    MySqlCommand command = new MySqlCommand(query, mysqlConnection);
+                    command.Parameters.AddWithValue("@username", username);
+                    command.Parameters.AddWithValue("@password", password);
 
                     object result = command.ExecuteScalar();
-                    string sqlType = result != null ? result.ToString() : string.Empty;
-
-                    string userSelectedType = comboBoxType.Text;
-
-                    if (userSelectedType == sqlType)
+                    if (result != null)
                     {
-                        if (userSelectedType == "Admin")
+                        string userType = result.ToString();
+                        string selectedType = comboBoxType.SelectedItem.ToString();
+
+                        if (userType.Equals(selectedType, StringComparison.OrdinalIgnoreCase))
                         {
-                            new Admin().Show();
-                            this.Hide();
+                            if (userType.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                            {
+                                new Admin().Show();
+                                this.Hide();
+                            }
+                            else if (userType.Equals("Vendor", StringComparison.OrdinalIgnoreCase))
+                            {
+                                new VendorBasicInfo().Show();
+                                this.Hide();
+                            }
                         }
-                        else if (userSelectedType == "Vendor")
+                        else
                         {
-                            new VendorBasicInfo().Show();
-                            this.Hide();
+                            MessageBox.Show("Selected user type does not match your account type.");
                         }
-                    }
-                    else
-                    {
-                        MessageBox.Show("User type is incorrect! Please select the correct user type.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Database error: " + ex.Message);
+                    MessageBox.Show("Error: " + ex.Message);
                 }
                 finally
                 {
@@ -94,53 +185,24 @@ namespace LoginVendor
             }
             else
             {
-                MessageBox.Show("Incorrect username or password!");
-                txtPassword.Clear();
-                txtUsername.Clear();
-                txtUsername.Focus();
+                MessageBox.Show("Invalid username or password!");
             }
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
         }
 
         private void label2_Click(object sender, EventArgs e)
         {
-            txtUsername.Clear();
-            txtPassword.Clear();
-            txtUsername.Focus();
+            txtUsername.Text = "Username";
+            txtPassword.Text = "Password";
+            txtPassword.PasswordChar = '\0';
+            txtUsername.ForeColor = Color.Gray;
+            txtPassword.ForeColor = Color.Gray;
+            comboBoxType.SelectedIndex = -1;
         }
 
-        private void panel2_Paint(object sender, PaintEventArgs e)
+        private void label3_Click(object sender, EventArgs e)
         {
-
-        }
-
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void pictureBox3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void pictureBox2_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txtUsername_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void pictureBox1_Click(object sender, EventArgs e)
-        {
-
+            new SignUp().Show();
+            this.Hide();
         }
 
         private void ExitLabel_Click(object sender, EventArgs e)
@@ -148,24 +210,9 @@ namespace LoginVendor
             Application.Exit();
         }
 
-        private void txtPassword_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txtUsername_TextChanged_1(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void btnShow_Click(object sender, EventArgs e)
         {
-            if (txtPassword.PasswordChar == '*')
+            if (txtPassword.PasswordChar == '•')
             {
                 btnHide.BringToFront();
                 txtPassword.PasswordChar = '\0';
@@ -177,25 +224,17 @@ namespace LoginVendor
             if (txtPassword.PasswordChar == '\0')
             {
                 btnShow.BringToFront();
-                txtPassword.PasswordChar = '*';
+                txtPassword.PasswordChar = '•';
             }
         }
 
-        private void label3_Click(object sender, EventArgs e)
+        protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            new SignUp().Show();
-            this.Hide();
-
-        }
-
-        private void label4_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void comboBoxType_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
+            base.OnFormClosing(e);
+            if (mysqlConnection != null)
+            {
+                mysqlConnection.Dispose();
+            }
         }
     }
 }
