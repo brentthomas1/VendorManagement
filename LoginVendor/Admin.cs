@@ -173,5 +173,16 @@ namespace LoginVendor
             // Load initial data for user grid
             btnViewUserData_Click(sender, e);
         }
+
+        // Required event handlers for Designer
+        private void dgNewVendor_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Event handler required by Designer - no implementation needed
+        }
+
+        private void dgVendorDelivery_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Event handler required by Designer - no implementation needed
+        }
     }
 }
