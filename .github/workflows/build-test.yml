@@ -37,6 +37,13 @@ jobs:
             exit 1
         }
 
+    - name: Clean solution
+      run: |
+        echo "Cleaning solution..."
+        Remove-Item -Path LoginVendor/NewVendorInfo-DESKTOP-49PLJPG.cs -ErrorAction SilentlyContinue
+        Remove-Item -Path LoginVendor/bin -Recurse -ErrorAction SilentlyContinue
+        Remove-Item -Path LoginVendor/obj -Recurse -ErrorAction SilentlyContinue
+
     - name: Restore NuGet packages
       run: |
         echo "Restoring NuGet packages..."
@@ -46,16 +53,7 @@ jobs:
     - name: Build solution
       run: |
         echo "Starting build process..."
-        msbuild "MIS-Project-.sln" `
-          /p:Configuration=Release `
-          /p:Platform="Any CPU" `
-          /p:RestorePackagesConfig=true `
-          /v:detailed `
-          /p:DeployOnBuild=true `
-          /p:OutDir="$env:GITHUB_WORKSPACE\bin\Release" `
-          /flp:logfile=msbuild.log;verbosity=detailed `
-          /flp1:logfile=msbuild_warn.log;warningsonly `
-          /flp2:logfile=msbuild_error.log;errorsonly
+        msbuild "MIS-Project-.sln" /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:detailed /p:DeployOnBuild=true /p:OutDir="$env:GITHUB_WORKSPACE\bin\Release" /fileLogger /fileLoggerParameters:LogFile=msbuild.log;Verbosity=detailed
         echo "Build process completed."
 
     - name: Show build logs
@@ -64,14 +62,6 @@ jobs:
         echo "MSBuild Log:"
         if (Test-Path "msbuild.log") {
             Get-Content "msbuild.log"
-        }
-        echo "MSBuild Warnings:"
-        if (Test-Path "msbuild_warn.log") {
-            Get-Content "msbuild_warn.log"
-        }
-        echo "MSBuild Errors:"
-        if (Test-Path "msbuild_error.log") {
-            Get-Content "msbuild_error.log"
         }
 
     - name: List build output
