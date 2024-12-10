@@ -1,29 +1,21 @@
 ﻿using System;
-using System.Data.SqlClient;
+using MySql.Data.MySqlClient;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using Excel = Microsoft.Office.Interop.Excel;
 
 namespace LoginVendor
 {
     public partial class NewVendorInfo : Form
     {
-        private SqlConnection sqlConnection;
-        private String connectionString = @"Data Source=vendor-mgnt.database.windows.net;Initial Catalog=VendorLogIn;Persist Security Info=True;User ID=Ernesto;Password=Password1!;TrustServerCertificate=True
-                                            Integrated Security = True; TrustServerCertificate=True";
-
-        private Excel.Application xlApp;
-        private Excel.Workbook xlWorkBook;
-        private Excel.Worksheet xlWorkSheet;
-        private string excelFilePath = @"C:\Users\erodr\OneDrive\Documents\KSU\Senior\Fall 2024\MIS 555\Excel\ExcelFile2.xlsx";
+        private readonly MySqlConnection mysqlConnection;
+        private readonly string connectionString = "server=localhost;user=root;database=vendorDB;port=3306;password=Bshow123!;";
 
         public NewVendorInfo()
         {
             InitializeComponent();
-            sqlConnection = new SqlConnection(connectionString);
+            mysqlConnection = new MySqlConnection(connectionString);
         }
-
 
         private byte[] GetPhoto()
         {
@@ -31,112 +23,64 @@ namespace LoginVendor
             {
                 using (MemoryStream stream = new MemoryStream())
                 {
-                    // Save image to stream in PNG format
                     picVendorPhoto.Image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                    return stream.ToArray(); // Converts the image in memory stream to byte array
+                    return stream.ToArray();
                 }
             }
-            return null; // Return null if no image is loaded
+            return null;
         }
-
-
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            string sqlCommandText = @"INSERT INTO NewVendorsDB 
-                             (New_VID, POC_Name, POC_JobTitle, POC_Email, POC_Phone, POC_Company, POC_ComAddress, City, Photo)
-                              VALUES (@New_VID, @POC_Name, @POC_JobTitle, @POC_Email, @POC_Phone, @POC_Company, @POC_ComAddress, @City, @Photo)";
+            string sqlCommandText = @"INSERT INTO vendorinfo 
+                             (VendorID, POC_Name, POC_JobTitle, POC_Email, POC_Phone, POC_Company, POC_ComAddress, City, Photo)
+                              VALUES (@VendorID, @POC_Name, @POC_JobTitle, @POC_Email, @POC_Phone, @POC_Company, @POC_ComAddress, @City, @Photo)";
 
             try
             {
-                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
-                    sqlConnection.Open();
+                    conn.Open();
+                    long nextId = GetNextId(conn);
 
-                    long nextId = GetNextId(sqlConnection);
-
-                    using (SqlCommand sqlCommand = new SqlCommand(sqlCommandText, sqlConnection))
+                    using (MySqlCommand cmd = new MySqlCommand(sqlCommandText, conn))
                     {
-                        sqlCommand.Parameters.AddWithValue("@New_VID", nextId);
-                        sqlCommand.Parameters.AddWithValue("@POC_Name", txtPOCName.Text);
-                        sqlCommand.Parameters.AddWithValue("@POC_JobTitle", txtPOCJobTitle.Text);
-                        sqlCommand.Parameters.AddWithValue("@POC_Email", txtPOCEmail.Text);
-                        sqlCommand.Parameters.AddWithValue("@POC_Phone", txtPOCPhone.Text);
-                        sqlCommand.Parameters.AddWithValue("@POC_Company", txtPOCCompany.Text);
-                        sqlCommand.Parameters.AddWithValue("@POC_ComAddress", txtCompanyAddress.Text);
-                        sqlCommand.Parameters.AddWithValue("@City", listBox3.GetItemText(listBox3.SelectedItem));
-
-
-                        //Leave for the photo value
-                        sqlCommand.Parameters.AddWithValue("@Photo", GetPhoto());
-                        sqlCommand.ExecuteNonQuery();
+                        cmd.Parameters.AddWithValue("@VendorID", nextId);
+                        cmd.Parameters.AddWithValue("@POC_Name", txtPOCName.Text);
+                        cmd.Parameters.AddWithValue("@POC_JobTitle", txtPOCJobTitle.Text);
+                        cmd.Parameters.AddWithValue("@POC_Email", txtPOCEmail.Text);
+                        cmd.Parameters.AddWithValue("@POC_Phone", txtPOCPhone.Text);
+                        cmd.Parameters.AddWithValue("@POC_Company", txtPOCCompany.Text);
+                        cmd.Parameters.AddWithValue("@POC_ComAddress", txtCompanyAddress.Text);
+                        cmd.Parameters.AddWithValue("@City", listBox3.GetItemText(listBox3.SelectedItem));
+                        cmd.Parameters.AddWithValue("@Photo", GetPhoto());
+                        cmd.ExecuteNonQuery();
 
                         MessageBox.Show("New vendor information saved successfully!");
                     }
-
-                    sqlConnection.Close();
                 }
-
-                // Initialize Excel objects
-                xlApp = new Excel.Application();
-                xlWorkBook = xlApp.Workbooks.Open(excelFilePath);
-                xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets["Sheet1"];
-
-                // Example of writing data to Excel
-                int row = 2; // Example row
-                while (xlWorkSheet.Cells[row, 1].Value != null)
-                {
-                    row++;
-                }
-
-                xlWorkSheet.Cells[row, 1].Value = txtPOCName.Text;
-                xlWorkSheet.Cells[row, 2].Value = txtPOCJobTitle.Text;
-                xlWorkSheet.Cells[row, 3].Value = txtPOCEmail.Text;
-                xlWorkSheet.Cells[row, 4].Value = txtPOCPhone.Text;
-                xlWorkSheet.Cells[row, 5].Value = txtPOCCompany.Text;
-                xlWorkSheet.Cells[row, 6].Value = txtCompanyAddress.Text;
-                xlWorkSheet.Cells[row, 7].Value = listBox3.GetItemText(listBox3.SelectedItem);
-
-                MessageBox.Show("Data saved to Excel successfully!");
-
-                // Save and clean up
-                xlWorkBook.Save();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Failed to save to Excel or database: " + ex.Message);
-            }
-            finally
-            {
-                // Cleanup
-                if (xlWorkBook != null)
-                {
-                    xlWorkBook.Close();
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(xlWorkBook);
-                }
-                if (xlApp != null)
-                {
-                    xlApp.Quit();
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(xlApp);
-                }
+                MessageBox.Show("Error saving to database: " + ex.Message);
             }
         }
 
-        private int GetNextId(SqlConnection sqlConnection)
+        private long GetNextId(MySqlConnection conn)
         {
-            string query = "SELECT ISNULL(MAX(New_VID), 0) + 1 FROM NewVendorsDB";
-            SqlCommand cmd = new SqlCommand(query, sqlConnection);
-            return (int)cmd.ExecuteScalar();
+            string query = "SELECT COALESCE(MAX(VendorID), 0) + 1 FROM vendorinfo";
+            using (MySqlCommand cmd = new MySqlCommand(query, conn))
+            {
+                return Convert.ToInt64(cmd.ExecuteScalar());
+            }
         }
 
         private void btnUploadPhoto_Click(object sender, EventArgs e)
         {
-            //Open the file Daialog
             if (openFileDialog2.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
-                    // Load the image into the PictureBox
                     picVendorPhoto.Image = Image.FromFile(openFileDialog2.FileName);
                 }
                 catch (Exception ex)
@@ -159,13 +103,13 @@ namespace LoginVendor
 
         private void btnNewLog_Click(object sender, EventArgs e)
         {
-            new NewVendorInfo().Show();
+            var newForm = new NewVendorInfo();
+            newForm.Show();
             this.Hide();
         }
 
         private void picVendorPhoto_Click(object sender, EventArgs e)
         {
-
         }
     }
 }
