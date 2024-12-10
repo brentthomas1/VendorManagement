@@ -1,43 +1,60 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
 using System.Windows.Forms;
 
 namespace LoginVendor
 {
     public partial class Admin : Form
     {
+        private MySqlConnection mysqlConnection;
+        private string connectionString = "server=localhost;user=root;database=vendorDB;port=3306;password=Bshow123!;";
+
         public Admin()
         {
             InitializeComponent();
+            mysqlConnection = new MySqlConnection(connectionString);
+        }
+
+        private void LoadDataToGrid(string query, DataGridView grid)
+        {
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    using (MySqlDataAdapter adapter = new MySqlDataAdapter(query, conn))
+                    {
+                        DataTable dt = new DataTable();
+                        adapter.Fill(dt);
+                        grid.DataSource = dt;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading data: " + ex.Message);
+            }
         }
 
         private void btnViewUserData_Click(object sender, EventArgs e)
         {
-            //Still need to program the other grid views
-            this.vendorCredentialsTableAdapter.Fill(this.vendorLoginDataSet.VendorCredentials);
-
-            gdUserData.DataSource = this.vendorLoginDataSet.VendorCredentials;
-
+            string query = "SELECT * FROM vendorcredentials";
+            LoadDataToGrid(query, gdUserData);
 
             // Visibility settings
             gdUserData.Visible = true;
             gdUserData.BringToFront();
             dgVendorDelivery.Visible = false;
             dgNewVendor.Visible = false;
-
         }
 
         private void btnViewVendorData_Click(object sender, EventArgs e)
         {
-            this.newVendorsDBTableAdapter.Fill(this.azureVendorLogInDataSet21.NewVendorsDB);
-            dgNewVendor.DataSource = this.azureVendorLogInDataSet21.NewVendorsDB;
+            string query = "SELECT * FROM vendorinfo";
+            LoadDataToGrid(query, dgNewVendor);
 
+            // Visibility settings
             dgNewVendor.Visible = true;
             dgNewVendor.BringToFront();
             dgVendorDelivery.Visible = false;
@@ -46,17 +63,14 @@ namespace LoginVendor
 
         private void btnViewVendorDelivery_Click(object sender, EventArgs e)
         {
-            // TODO: This line of code loads data into the 'vendorInfoData.VendorInfo' table
-            this.vendorInfoTableAdapter.Fill(this.azureVendorLogInDataSet21.VendorInfo);
-
-            dgVendorDelivery.DataSource = this.azureVendorLogInDataSet21.VendorInfo;
+            string query = "SELECT * FROM vendorinfo WHERE Delivery IS NOT NULL";
+            LoadDataToGrid(query, dgVendorDelivery);
 
             // Visibility settings
             dgVendorDelivery.Visible = true;
             dgVendorDelivery.BringToFront();
             gdUserData.Visible = false;
             dgNewVendor.Visible = false;
-
         }
 
         private void btnBackLogIn_Click(object sender, EventArgs e)
@@ -73,27 +87,20 @@ namespace LoginVendor
 
         private void Admin_Load(object sender, EventArgs e)
         {
-            // TODO: This line of code loads data into the 'azureVendorLogInDataSet21.VendorInfo' table. You can move, or remove it, as needed.
-            this.vendorInfoTableAdapter.Fill(this.azureVendorLogInDataSet21.VendorInfo);//VendorInfo -YES
+            // Load initial data for all grids
+            btnViewUserData_Click(sender, e);
+            btnViewVendorData_Click(sender, e);
+            btnViewVendorDelivery_Click(sender, e);
 
-
-            // TODO: This line of code loads data into the 'azureVendorLogInDataSet21.NewVendorsDB' table. You can move, or remove it, as needed.
-            this.newVendorsDBTableAdapter.Fill(this.azureVendorLogInDataSet21.NewVendorsDB); //NewVendorsDB
-
-
-            // TODO: This line of code loads data into the 'vendorLoginDataSet.VendorCredentials' table. You can move, or remove it, as needed.
-            this.vendorCredentialsTableAdapter.Fill(this.vendorLoginDataSet.VendorCredentials); // NOT SURE
-
+            // Set initial visibility
+            gdUserData.Visible = true;
+            gdUserData.BringToFront();
+            dgVendorDelivery.Visible = false;
+            dgNewVendor.Visible = false;
         }
 
-        private void dgNewVendor_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void dgVendorDelivery_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
+        // Keep existing UI event handlers
+        private void dgNewVendor_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
+        private void dgVendorDelivery_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
     }
 }

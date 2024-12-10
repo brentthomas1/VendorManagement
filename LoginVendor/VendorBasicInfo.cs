@@ -1,25 +1,23 @@
 ﻿using System;
 using System.Data;
+using MySql.Data.MySqlClient;
 using System.Windows.Forms;
-using System.Data.SqlClient; // Adding a Sql Connection
 
 namespace LoginVendor
 {
     public partial class VendorBasicInfo : Form
     {
-        //When using VM
-        private SqlConnection sqlConnection;
-        private String connectionString = @"Data Source=vendor-mgnt.database.windows.net;Initial Catalog=VendorLogIn;Persist Security Info=True;User ID=Ernesto;Password=Password1!;TrustServerCertificate=True
-                                            Integrated Security = True; TrustServerCertificate=True"; // SQL Connection String
+        private MySqlConnection mysqlConnection;
+        private string connectionString = "server=localhost;user=root;database=vendorDB;port=3306;password=(Bshow123!);";
+
         public VendorBasicInfo()
         {
             InitializeComponent();
-            sqlConnection = new SqlConnection(connectionString);
+            mysqlConnection = new MySqlConnection(connectionString);
         }
 
         private void VendorBasicInfo_Load(object sender, EventArgs e)
         {
-
         }
 
         private void button1_Click(object sender, EventArgs e) //This is the Exit button
@@ -27,129 +25,98 @@ namespace LoginVendor
             Application.Exit();
         }
 
-
         // Function to retrieve the next ID from the database
-        // Function to retrieve the next ID from the database
-        private int GetNextId(SqlConnection sqlConnection)
+        private int GetNextId(MySqlConnection connection)
         {
             // Ensure connection is open before calling this function
-            if (sqlConnection.State != ConnectionState.Open)
+            if (connection.State != ConnectionState.Open)
             {
-                sqlConnection.Open();
+                connection.Open();
             }
 
-            string query = "SELECT ISNULL(MAX(ID), 0) + 1 FROM VendorInfo";
-            SqlCommand cmd = new SqlCommand(query, sqlConnection);
+            string query = "SELECT COALESCE(MAX(ID), 0) + 1 FROM vendorinfo";
+            MySqlCommand cmd = new MySqlCommand(query, connection);
 
             int nextId = Convert.ToInt32(cmd.ExecuteScalar());
-
-            // Do not close the connection here; it will remain open for further operations
             return nextId;
         }
 
-
-
         private void button2_Click(object sender, EventArgs e)
         {
-            string sqlCommandText = @"INSERT INTO VendorInfo (ID, Name, Company, Cell, City, Products, Dairy_products, Delivery, Payment)
-                              VALUES (@ID, @Name, @Company, @Cell, @City, @Products, @Dairy_products, @Delivery, @Payment)";
+            if (string.IsNullOrWhiteSpace(textBox1.Text) || string.IsNullOrWhiteSpace(CompanyBox.Text) || 
+                string.IsNullOrWhiteSpace(textBox3.Text) || listBox1.SelectedItem == null)
+            {
+                MessageBox.Show("Please fill in all required fields (Name, Company, Cell, and City).");
+                return;
+            }
+
+            string sqlCommandText = @"INSERT INTO vendorinfo (ID, Name, Company, Cell, City, Products, Dairy_products, Delivery, Payment)
+                                    VALUES (@ID, @Name, @Company, @Cell, @City, @Products, @Dairy_products, @Delivery, @Payment)";
 
             try
             {
-                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                mysqlConnection.Open();
+
+                // Get the next ID
+                int nextId = GetNextId(mysqlConnection);
+
+                using (MySqlCommand command = new MySqlCommand(sqlCommandText, mysqlConnection))
                 {
-                    sqlConnection.Open();
+                    // Set parameters
+                    command.Parameters.AddWithValue("@ID", nextId);
+                    command.Parameters.AddWithValue("@Name", textBox1.Text);
+                    command.Parameters.AddWithValue("@Company", CompanyBox.Text);
+                    command.Parameters.AddWithValue("@Cell", textBox3.Text);
+                    command.Parameters.AddWithValue("@City", listBox1.GetItemText(listBox1.SelectedItem));
 
-                    // Get the next ID
-                    long nextId = GetNextId(sqlConnection); // No need to re-open the connection here
+                    // Product: Coffee, Tea, or Herbs
+                    string product = rdCoffee.Checked ? "Coffee Beans" :
+                                   rdTea.Checked ? "Green Tea" :
+                                   rdHerbs.Checked ? "Herbs" : "";
+                    command.Parameters.AddWithValue("@Products", product);
 
-                    using (SqlCommand sqlCommand = new SqlCommand(sqlCommandText, sqlConnection))
-                    {
-                        // Set parameters
-                        sqlCommand.Parameters.AddWithValue("@ID", nextId);
-                        sqlCommand.Parameters.AddWithValue("@Name", textBox1.Text); // From your Excel code
-                        sqlCommand.Parameters.AddWithValue("@Company", CompanyBox.Text);
-                        sqlCommand.Parameters.AddWithValue("@Cell", textBox3.Text);
-                        sqlCommand.Parameters.AddWithValue("@City", listBox1.GetItemText(listBox1.SelectedItem));
+                    // Dairy product: Milk or Cream
+                    string dairyProduct = rdMilk.Checked ? "Milk" :
+                                        rdCream.Checked ? "Cream" : "";
+                    command.Parameters.AddWithValue("@Dairy_products", dairyProduct);
 
-                        // Product: Coffee, Tea, or Herbs
-                        string product = rdCoffee.Checked ? "Coffee Beans" :
-                                         rdTea.Checked ? "Green Tea" :
-                                         rdHerbs.Checked ? "Herbs" : "";
-                        sqlCommand.Parameters.AddWithValue("@Products", product);
+                    // Delivery status
+                    string deliveryStatus = ckOnTime.Checked ? "on time" : "delayed";
+                    command.Parameters.AddWithValue("@Delivery", deliveryStatus);
 
-                        // Dairy product: Milk or Cream
-                        string dairyProduct = rdMilk.Checked ? "Milk" :
-                                              rdCream.Checked ? "Cream" : "";
-                        sqlCommand.Parameters.AddWithValue("@Dairy_products", dairyProduct);
+                    // Payment status
+                    string paymentStatus = ckPaid.Checked ? "paid" : "unpaid";
+                    command.Parameters.AddWithValue("@Payment", paymentStatus);
 
-                        // Delivery status
-                        string deliveryStatus = ckOnTime.Checked ? "on time" : "delayed";
-                        sqlCommand.Parameters.AddWithValue("@Delivery", deliveryStatus);
-
-                        // Payment status
-                        string paymentStatus = ckPaid.Checked ? "paid" : "unpaid";
-                        sqlCommand.Parameters.AddWithValue("@Payment", paymentStatus);
-
-                        sqlCommand.ExecuteNonQuery(); // Execute the SQL command
-
-                        MessageBox.Show("Vendor information saved successfully!");
-                    }
-                    sqlConnection.Close();
+                    command.ExecuteNonQuery();
+                    MessageBox.Show("Vendor information saved successfully!");
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Failed to save to database: " + ex.Message);
             }
+            finally
+            {
+                if (mysqlConnection.State == ConnectionState.Open)
+                    mysqlConnection.Close();
+            }
         }
 
-
-
-        private void radioButton1_CheckedChanged(object sender, EventArgs e) //This is the Coffee button
-        {
-
-        }
-
-        private void radioButton3_CheckedChanged(object sender, EventArgs e) //This is the Herbs button
-        {
-
-        }
-
-        private void radioButton2_CheckedChanged(object sender, EventArgs e) //This is the Green Tea button
-        {
-
-        }
-
-        private void rdCream_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void rdMilk_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox1_TextChanged(object sender, EventArgs e) //This is the Name Textbox
-        {
-
-        }
-
-        private void textBox3_TextChanged(object sender, EventArgs e) //This is the Cell Textbox
-        {
-
-        }
-
-        private void CompanyBox_TextChanged(object sender, EventArgs e)
-        {
-
-        }
+        // Keep existing UI event handlers
+        private void radioButton1_CheckedChanged(object sender, EventArgs e) { } //This is the Coffee button
+        private void radioButton3_CheckedChanged(object sender, EventArgs e) { } //This is the Herbs button
+        private void radioButton2_CheckedChanged(object sender, EventArgs e) { } //This is the Green Tea button
+        private void rdCream_CheckedChanged(object sender, EventArgs e) { }
+        private void rdMilk_CheckedChanged(object sender, EventArgs e) { }
+        private void textBox1_TextChanged(object sender, EventArgs e) { } //This is the Name Textbox
+        private void textBox3_TextChanged(object sender, EventArgs e) { } //This is the Cell Textbox
+        private void CompanyBox_TextChanged(object sender, EventArgs e) { }
 
         private void btnBack_Click(object sender, EventArgs e)
         {
             new Login().Show();
-            this.Close();
+            this.Hide();
         }
     }
 }

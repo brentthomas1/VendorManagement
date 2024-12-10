@@ -24,7 +24,7 @@ namespace LoginVendor
             sqlConnection = new SqlConnection(connectionString);
         }
 
-        
+
         private byte[] GetPhoto()
         {
             if (picVendorPhoto.Image != null)
@@ -38,7 +38,7 @@ namespace LoginVendor
             }
             return null; // Return null if no image is loaded
         }
-        
+
 
 
         private void btnSave_Click(object sender, EventArgs e)

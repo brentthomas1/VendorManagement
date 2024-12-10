@@ -1,110 +1,109 @@
 ﻿using System;
+using MySql.Data.MySqlClient;
 using System.Windows.Forms;
-using System.Data.SqlClient; // Adding a Sql Connection
+using System.Configuration;
 
 namespace LoginVendor
 {
     public partial class Login : Form
     {
-        //When using VM
-        private SqlConnection sqlConnection;
-        private String connectionString = @"Data Source=DESKTOP-BPLDLKV\SQLEXPRESS;Initial Catalog=VendorLogin;Integrated Security=True;
-                                            TrustServerCertificate=True"; // SQL Connection String
+        private MySqlConnection mysqlConnection;
+        private string connectionString = "server=localhost;user=root;database=vendorDB;port=3306;password=Bshow123!;";
+
         public Login()
         {
             InitializeComponent();
-
-            sqlConnection = new SqlConnection(connectionString);
-
-            
+            mysqlConnection = new MySqlConnection(connectionString);
         }
-
 
         private bool ValidateUser(string username, string passwords)
         {
-            sqlConnection.Open();
-            string query = @"SELECT COUNT(*) AS UserCount FROM VendorCredentials WHERE Username = @username AND Password = @password";
-            SqlCommand command = new SqlCommand(query, sqlConnection);
-            command.Parameters.AddWithValue("@username", username);
-            command.Parameters.AddWithValue ("@password", passwords);
+            try
+            {
+                mysqlConnection.Open();
+                string query = "SELECT COUNT(*) AS UserCount FROM VendorCredentials WHERE Username = @username AND Password = @password";
+                MySqlCommand command = new MySqlCommand(query, mysqlConnection);
+                command.Parameters.AddWithValue("@username", username);
+                command.Parameters.AddWithValue("@password", passwords);
 
-            //Execute the command
-            int userCount = (int)command.ExecuteScalar();
-
-            sqlConnection.Close();
-
-            return userCount > 0;  
-        
+                int userCount = Convert.ToInt32(command.ExecuteScalar());
+                return userCount > 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database error: " + ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (mysqlConnection.State == System.Data.ConnectionState.Open)
+                    mysqlConnection.Close();
+            }
         }
-
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-
-
-
 
         private void btnSignIn_Click(object sender, EventArgs e)
         {
+            if (comboBoxType.SelectedItem == null)
+            {
+                MessageBox.Show("Please Select a valid user type.");
+                comboBoxType.Focus();
+                return;
+            }
+
             if (ValidateUser(txtUsername.Text, txtPassword.Text))
             {
-                if (comboBoxType.SelectedItem == null)
+                try
                 {
+                    mysqlConnection.Open();
+                    string userTypeQuery = "SELECT Type FROM VendorCredentials WHERE Username = @Username";
+                    MySqlCommand command = new MySqlCommand(userTypeQuery, mysqlConnection);
+                    command.Parameters.AddWithValue("@Username", txtUsername.Text);
 
-                    MessageBox.Show("Please Select a valid user type.");
-                    comboBoxType.Focus();
-                    return;
-                }
-                else
-                {
-                    MessageBox.Show("Incorrect username or passwords!");
-                    txtPassword.Clear();
-                    txtUsername.Clear();
-                    txtUsername.Focus();
-                }
+                    object result = command.ExecuteScalar();
+                    string sqlType = result != null ? result.ToString() : string.Empty;
 
-                string userSelectedType = comboBoxType.Text; // Get the selected user type from the ComboBox
+                    string userSelectedType = comboBoxType.Text;
 
-                // Fetch user type from the database for the given username
-                string userTypeQuery = "SELECT Type FROM VendorCredentials WHERE Username = @Username";
-                SqlCommand command = new SqlCommand(userTypeQuery, sqlConnection);
-                command.Parameters.AddWithValue("@Username", txtUsername.Text);
-
-                string sqlType = (string)command.ExecuteScalar();
-
-                sqlConnection.Close();
-
-                if (userSelectedType == sqlType)
-                {
-                    // User type is correct
-                    if (userSelectedType == "Admin")
+                    if (userSelectedType == sqlType)
                     {
-                        new Admin().Show();
-                        this.Hide();
+                        if (userSelectedType == "Admin")
+                        {
+                            new Admin().Show();
+                            this.Hide();
+                        }
+                        else if (userSelectedType == "Vendor")
+                        {
+                            new VendorBasicInfo().Show();
+                            this.Hide();
+                        }
                     }
-                    else if (userSelectedType == "Vendor")
+                    else
                     {
-                        new VendorBasicInfo().Show();
-                        this.Hide();
+                        MessageBox.Show("User type is incorrect! Please select the correct user type.");
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    MessageBox.Show("User type is incorrect! Please select the correct user type.");
+                    MessageBox.Show("Database error: " + ex.Message);
+                }
+                finally
+                {
+                    if (mysqlConnection.State == System.Data.ConnectionState.Open)
+                        mysqlConnection.Close();
                 }
             }
-            
             else
             {
-                MessageBox.Show("Incorrect username or passwords!");
+                MessageBox.Show("Incorrect username or password!");
                 txtPassword.Clear();
                 txtUsername.Clear();
                 txtUsername.Focus();
             }
-          
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
 
         private void label2_Click(object sender, EventArgs e)
