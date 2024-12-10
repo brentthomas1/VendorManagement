@@ -8,7 +8,7 @@ namespace LoginVendor
     public partial class VendorBasicInfo : Form
     {
         private MySqlConnection mysqlConnection;
-        private string connectionString = "server=localhost;user=root;database=vendorDB;port=3306;password=(Bshow123!);";
+        private string connectionString = "Server=localhost;Database=vendordb;Uid=vendorapp;Pwd=Vendor123!;Port=3306;SslMode=None;AllowPublicKeyRetrieval=True;";
 
         public VendorBasicInfo()
         {
