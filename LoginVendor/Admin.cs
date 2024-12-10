@@ -30,36 +30,51 @@ namespace LoginVendor
                         grid.DataSource = dt;
 
                         // Format the grid
-                        grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-                        grid.AutoResizeColumns();
+                        grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                        grid.ScrollBars = ScrollBars.Both;
+                        grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
                         grid.RowHeadersWidth = 25;
-                        grid.RowTemplate.Height = 30;
+                        grid.RowTemplate.Height = 35;
                         grid.DefaultCellStyle.Padding = new Padding(5);
+                        grid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
                         grid.ColumnHeadersDefaultCellStyle.Padding = new Padding(5);
                         grid.EnableHeadersVisualStyles = false;
                         grid.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.Color.LightBlue;
                         grid.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font(grid.Font, System.Drawing.FontStyle.Bold);
                         grid.AlternatingRowsDefaultCellStyle.BackColor = System.Drawing.Color.AliceBlue;
 
-                        // Set specific column widths
+                        // Set minimum column widths
                         if (grid.Columns.Contains("ID"))
-                            grid.Columns["ID"].Width = 50;
+                            grid.Columns["ID"].MinimumWidth = 50;
                         if (grid.Columns.Contains("Contact Name"))
-                            grid.Columns["Contact Name"].Width = 150;
+                            grid.Columns["Contact Name"].MinimumWidth = 150;
                         if (grid.Columns.Contains("Company"))
-                            grid.Columns["Company"].Width = 200;
+                            grid.Columns["Company"].MinimumWidth = 200;
                         if (grid.Columns.Contains("Phone"))
-                            grid.Columns["Phone"].Width = 120;
+                            grid.Columns["Phone"].MinimumWidth = 120;
                         if (grid.Columns.Contains("City"))
-                            grid.Columns["City"].Width = 100;
+                            grid.Columns["City"].MinimumWidth = 100;
                         if (grid.Columns.Contains("Products"))
-                            grid.Columns["Products"].Width = 120;
+                            grid.Columns["Products"].MinimumWidth = 120;
                         if (grid.Columns.Contains("Dairy Products"))
-                            grid.Columns["Dairy Products"].Width = 120;
+                            grid.Columns["Dairy Products"].MinimumWidth = 120;
                         if (grid.Columns.Contains("Delivery Status"))
-                            grid.Columns["Delivery Status"].Width = 120;
+                            grid.Columns["Delivery Status"].MinimumWidth = 120;
                         if (grid.Columns.Contains("Payment Status"))
-                            grid.Columns["Payment Status"].Width = 120;
+                            grid.Columns["Payment Status"].MinimumWidth = 120;
+
+                        // Auto-size columns based on content while respecting minimum widths
+                        foreach (DataGridViewColumn col in grid.Columns)
+                        {
+                            col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                            int width = col.Width;
+                            col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                            col.Width = Math.Max(width, col.MinimumWidth);
+                        }
+
+                        // Ensure grid size doesn't exceed form
+                        grid.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+                        grid.Dock = DockStyle.Fill;
                     }
                 }
             }
