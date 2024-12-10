@@ -28,6 +28,38 @@ namespace LoginVendor
                         DataTable dt = new DataTable();
                         adapter.Fill(dt);
                         grid.DataSource = dt;
+
+                        // Format the grid
+                        grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                        grid.AutoResizeColumns();
+                        grid.RowHeadersWidth = 25;
+                        grid.RowTemplate.Height = 30;
+                        grid.DefaultCellStyle.Padding = new Padding(5);
+                        grid.ColumnHeadersDefaultCellStyle.Padding = new Padding(5);
+                        grid.EnableHeadersVisualStyles = false;
+                        grid.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.Color.LightBlue;
+                        grid.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font(grid.Font, System.Drawing.FontStyle.Bold);
+                        grid.AlternatingRowsDefaultCellStyle.BackColor = System.Drawing.Color.AliceBlue;
+
+                        // Set specific column widths
+                        if (grid.Columns.Contains("ID"))
+                            grid.Columns["ID"].Width = 50;
+                        if (grid.Columns.Contains("Contact Name"))
+                            grid.Columns["Contact Name"].Width = 150;
+                        if (grid.Columns.Contains("Company"))
+                            grid.Columns["Company"].Width = 200;
+                        if (grid.Columns.Contains("Phone"))
+                            grid.Columns["Phone"].Width = 120;
+                        if (grid.Columns.Contains("City"))
+                            grid.Columns["City"].Width = 100;
+                        if (grid.Columns.Contains("Products"))
+                            grid.Columns["Products"].Width = 120;
+                        if (grid.Columns.Contains("Dairy Products"))
+                            grid.Columns["Dairy Products"].Width = 120;
+                        if (grid.Columns.Contains("Delivery Status"))
+                            grid.Columns["Delivery Status"].Width = 120;
+                        if (grid.Columns.Contains("Payment Status"))
+                            grid.Columns["Payment Status"].Width = 120;
                     }
                 }
             }
@@ -65,13 +97,6 @@ namespace LoginVendor
             ORDER BY ID";
             LoadDataToGrid(query, dgNewVendor);
 
-            // Format the grid for better readability
-            dgNewVendor.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
-            foreach (DataGridViewColumn col in dgNewVendor.Columns)
-            {
-                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            }
-
             // Visibility settings
             dgNewVendor.Visible = true;
             dgNewVendor.BringToFront();
@@ -94,13 +119,6 @@ namespace LoginVendor
             WHERE Delivery IS NOT NULL
             ORDER BY ID";
             LoadDataToGrid(query, dgVendorDelivery);
-
-            // Format the grid for better readability
-            dgVendorDelivery.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
-            foreach (DataGridViewColumn col in dgVendorDelivery.Columns)
-            {
-                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            }
 
             // Visibility settings
             dgVendorDelivery.Visible = true;
