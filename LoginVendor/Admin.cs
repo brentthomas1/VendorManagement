@@ -20,6 +20,19 @@ namespace LoginVendor
             ConfigureGrid(gdUserData);
             ConfigureGrid(dgNewVendor);
             ConfigureGrid(dgVendorDelivery);
+
+            // Set form properties
+            this.Size = new Size(1200, 800);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            // Position the grids
+            gdUserData.Location = new Point(432, 78);
+            dgNewVendor.Location = new Point(432, 78);
+            dgVendorDelivery.Location = new Point(432, 78);
+            
+            gdUserData.Size = new Size(700, 500);
+            dgNewVendor.Size = new Size(700, 500);
+            dgVendorDelivery.Size = new Size(700, 500);
         }
 
         private void ConfigureGrid(DataGridView grid)
@@ -32,9 +45,10 @@ namespace LoginVendor
             grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             grid.MultiSelect = false;
-            grid.Size = new Size(800, 400);  // Set a reasonable default size
-            grid.Location = new Point(20, 100);  // Position below the buttons
             grid.ScrollBars = ScrollBars.Both;
+            grid.AutoGenerateColumns = true;
+            grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            grid.Visible = false;
         }
 
         private void LoadDataToGrid(string query, DataGridView grid)
@@ -49,68 +63,43 @@ namespace LoginVendor
                         DataTable dt = new DataTable();
                         adapter.Fill(dt);
 
-                        // Debug information
                         if (dt.Rows.Count == 0)
                         {
-                            MessageBox.Show($"No data found for query:\n{query}");
+                            MessageBox.Show("No data found.");
                             return;
                         }
 
                         grid.DataSource = dt;
+                        grid.Visible = true;
 
                         // Format the grid
-                        grid.BackgroundColor = Color.White;
-                        grid.BorderStyle = BorderStyle.Fixed3D;
                         grid.RowHeadersWidth = 25;
                         grid.RowTemplate.Height = 35;
                         grid.DefaultCellStyle.Padding = new Padding(5);
                         grid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
                         grid.ColumnHeadersDefaultCellStyle.Padding = new Padding(5);
                         grid.EnableHeadersVisualStyles = false;
-                        grid.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.Color.LightBlue;
-                        grid.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font(grid.Font, System.Drawing.FontStyle.Bold);
-                        grid.AlternatingRowsDefaultCellStyle.BackColor = System.Drawing.Color.AliceBlue;
+                        grid.ColumnHeadersDefaultCellStyle.BackColor = Color.LightBlue;
+                        grid.ColumnHeadersDefaultCellStyle.Font = new Font(grid.Font, FontStyle.Bold);
+                        grid.AlternatingRowsDefaultCellStyle.BackColor = Color.AliceBlue;
 
-                        // Set minimum column widths
-                        if (grid.Columns.Contains("ID"))
-                            grid.Columns["ID"].MinimumWidth = 50;
-                        if (grid.Columns.Contains("Contact Name"))
-                            grid.Columns["Contact Name"].MinimumWidth = 150;
-                        if (grid.Columns.Contains("Company"))
-                            grid.Columns["Company"].MinimumWidth = 200;
-                        if (grid.Columns.Contains("Phone"))
-                            grid.Columns["Phone"].MinimumWidth = 120;
-                        if (grid.Columns.Contains("City"))
-                            grid.Columns["City"].MinimumWidth = 100;
-                        if (grid.Columns.Contains("Products"))
-                            grid.Columns["Products"].MinimumWidth = 120;
-                        if (grid.Columns.Contains("Dairy Products"))
-                            grid.Columns["Dairy Products"].MinimumWidth = 120;
-                        if (grid.Columns.Contains("Delivery Status"))
-                            grid.Columns["Delivery Status"].MinimumWidth = 120;
-                        if (grid.Columns.Contains("Payment Status"))
-                            grid.Columns["Payment Status"].MinimumWidth = 120;
-
-                        // Auto-size columns based on content while respecting minimum widths
+                        // Auto-size columns
                         foreach (DataGridViewColumn col in grid.Columns)
                         {
                             col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                            int width = col.Width;
-                            col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                            col.Width = Math.Max(width, col.MinimumWidth);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading data:\n{ex.Message}\n\nQuery:\n{query}");
+                MessageBox.Show($"Error loading data: {ex.Message}");
             }
         }
 
         private void btnViewUserData_Click(object sender, EventArgs e)
         {
-            string query = "SELECT * FROM vendorcredentials";
+            string query = "SELECT Username, Password, Type FROM vendorcredentials ORDER BY Username";
             LoadDataToGrid(query, gdUserData);
 
             // Visibility settings
@@ -183,42 +172,6 @@ namespace LoginVendor
         {
             // Load initial data for user grid
             btnViewUserData_Click(sender, e);
-
-            // Make sure all buttons are visible and enabled
-            if (btnViewUserData != null) btnViewUserData.Visible = btnViewUserData.Enabled = true;
-            if (btnViewVendorData != null) btnViewVendorData.Visible = btnViewVendorData.Enabled = true;
-            if (btnViewVendorDelivery != null) btnViewVendorDelivery.Visible = btnViewVendorDelivery.Enabled = true;
-            if (btnBackLogIn != null) btnBackLogIn.Visible = btnBackLogIn.Enabled = true;
-            if (btnNewVendorLog != null) btnNewVendorLog.Visible = btnNewVendorLog.Enabled = true;
         }
-
-        protected override void OnShown(EventArgs e)
-        {
-            base.OnShown(e);
-            // Ensure proper form size and layout
-            this.Size = new Size(900, 600);
-            this.StartPosition = FormStartPosition.CenterScreen;
-        }
-
-        // Add a refresh button click handler
-        private void RefreshData()
-        {
-            if (gdUserData.Visible)
-                btnViewUserData_Click(this, EventArgs.Empty);
-            else if (dgNewVendor.Visible)
-                btnViewVendorData_Click(this, EventArgs.Empty);
-            else if (dgVendorDelivery.Visible)
-                btnViewVendorDelivery_Click(this, EventArgs.Empty);
-        }
-
-        protected override void OnActivated(EventArgs e)
-        {
-            base.OnActivated(e);
-            RefreshData(); // Refresh data when form becomes active
-        }
-
-        // Keep existing UI event handlers
-        private void dgNewVendor_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
-        private void dgVendorDelivery_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
     }
 }
