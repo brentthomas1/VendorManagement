@@ -52,20 +52,17 @@ namespace LoginVendor
         private void btnViewVendorData_Click(object sender, EventArgs e)
         {
             string query = @"SELECT 
-                v.ID,
-                v.POC_Name as 'Contact Name',
-                v.POC_JobTitle as 'Job Title',
-                v.POC_Email as 'Email',
-                v.POC_Phone as 'Phone',
-                v.POC_Company as 'Company',
-                v.POC_ComAddress as 'Address',
-                v.City,
-                COALESCE(v.Products, 'N/A') as 'Products',
-                COALESCE(v.Dairy_products, 'N/A') as 'Dairy Products',
-                COALESCE(v.Delivery, 'N/A') as 'Delivery Status',
-                COALESCE(v.Payment, 'N/A') as 'Payment Status'
-            FROM vendorinfo v
-            ORDER BY v.ID";
+                ID,
+                Name as 'Contact Name',
+                Company,
+                Cell as 'Phone',
+                City,
+                COALESCE(Products, 'N/A') as 'Products',
+                COALESCE(Dairy_products, 'N/A') as 'Dairy Products',
+                COALESCE(Delivery, 'N/A') as 'Delivery Status',
+                COALESCE(Payment, 'N/A') as 'Payment Status'
+            FROM vendorinfo
+            ORDER BY ID";
             LoadDataToGrid(query, dgNewVendor);
 
             // Format the grid for better readability
@@ -85,17 +82,17 @@ namespace LoginVendor
         private void btnViewVendorDelivery_Click(object sender, EventArgs e)
         {
             string query = @"SELECT 
-                v.ID,
-                v.POC_Name as 'Contact Name',
-                v.POC_Company as 'Company',
-                v.City,
-                COALESCE(v.Products, 'N/A') as 'Products',
-                COALESCE(v.Dairy_products, 'N/A') as 'Dairy Products',
-                v.Delivery as 'Delivery Status',
-                v.Payment as 'Payment Status'
-            FROM vendorinfo v
-            WHERE v.Delivery IS NOT NULL
-            ORDER BY v.ID";
+                ID,
+                Name as 'Contact Name',
+                Company,
+                City,
+                COALESCE(Products, 'N/A') as 'Products',
+                COALESCE(Dairy_products, 'N/A') as 'Dairy Products',
+                Delivery as 'Delivery Status',
+                Payment as 'Payment Status'
+            FROM vendorinfo
+            WHERE Delivery IS NOT NULL
+            ORDER BY ID";
             LoadDataToGrid(query, dgVendorDelivery);
 
             // Format the grid for better readability
