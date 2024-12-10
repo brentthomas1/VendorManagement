@@ -11,25 +11,45 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup MSBuild
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
+      with:
+        msbuild-architecture: x64
 
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.2.0
       
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '6.0.x'
-        
     - name: Restore NuGet packages
-      run: nuget restore MIS-Project-.sln
+      run: |
+        echo "Restoring NuGet packages..."
+        nuget restore LoginVendor/LoginVendor.csproj
+        echo "NuGet restore completed."
 
-    - name: Build Solution
-      run: msbuild MIS-Project-.sln /p:Configuration=Release
+    - name: Build project
+      run: |
+        echo "Starting build process..."
+        msbuild LoginVendor/LoginVendor.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackagesConfig=true /v:detailed
+        echo "Build process completed."
 
-    # Add testing step if you have unit tests
-    # - name: Run Tests
-    #   run: dotnet test --no-build --verbosity normal 
+    - name: List build output
+      run: |
+        echo "Checking build output directory..."
+        dir LoginVendor\bin\Release\
+      if: always()
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: app-build
+        path: LoginVendor\bin\Release\
+      if: success()
+
+    - name: Report build status
+      run: |
+        echo "Build Status: ${{ job.status }}"
+        echo "Runner OS: ${{ runner.os }}"
+        echo "Workspace: ${{ github.workspace }}"
+      if: always()
