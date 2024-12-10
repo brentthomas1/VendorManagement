@@ -20,14 +20,6 @@ namespace LoginVendor
         {
             try
             {
-                // Clear existing data
-                if (grid.DataSource != null)
-                {
-                    grid.DataSource = null;
-                }
-                grid.Rows.Clear();
-                grid.Columns.Clear();
-
                 using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
@@ -35,6 +27,22 @@ namespace LoginVendor
                     {
                         DataTable dt = new DataTable();
                         adapter.Fill(dt);
+
+                        // Debug information
+                        if (dt.Rows.Count == 0)
+                        {
+                            MessageBox.Show($"No data found for query:\n{query}");
+                            return;
+                        }
+
+                        // Clear existing data
+                        if (grid.DataSource != null)
+                        {
+                            grid.DataSource = null;
+                        }
+                        grid.Rows.Clear();
+                        grid.Columns.Clear();
+
                         grid.DataSource = dt;
 
                         // Format the grid
@@ -87,7 +95,7 @@ namespace LoginVendor
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading data: " + ex.Message);
+                MessageBox.Show($"Error loading data:\n{ex.Message}\n\nQuery:\n{query}");
             }
         }
 
@@ -106,11 +114,11 @@ namespace LoginVendor
         private void btnViewVendorData_Click(object sender, EventArgs e)
         {
             string query = @"SELECT 
-                ID,
+                ID as 'ID',
                 Name as 'Contact Name',
-                Company,
+                Company as 'Company',
                 Cell as 'Phone',
-                City,
+                City as 'City',
                 COALESCE(Products, 'N/A') as 'Products',
                 COALESCE(Dairy_products, 'N/A') as 'Dairy Products',
                 COALESCE(Delivery, 'N/A') as 'Delivery Status',
@@ -129,10 +137,10 @@ namespace LoginVendor
         private void btnViewVendorDelivery_Click(object sender, EventArgs e)
         {
             string query = @"SELECT 
-                ID,
+                ID as 'ID',
                 Name as 'Contact Name',
-                Company,
-                City,
+                Company as 'Company',
+                City as 'City',
                 COALESCE(Products, 'N/A') as 'Products',
                 COALESCE(Dairy_products, 'N/A') as 'Dairy Products',
                 Delivery as 'Delivery Status',
